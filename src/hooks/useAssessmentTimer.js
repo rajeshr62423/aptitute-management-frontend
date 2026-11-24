@@ -10,15 +10,16 @@ export default function useAssessmentTimer({
   autoStart = true,
 }) {
   const [timeLeft, setTimeLeft] = useState(initialSeconds);
-  const [prevInitialSeconds, setPrevInitialSeconds] = useState(initialSeconds);
   const [isActive, setIsActive] = useState(autoStart);
+  const isRecoveredRef = useRef(false);
   const onTimeoutRef = useRef(onTimeout);
   const onTickRef = useRef(onTick);
 
-  if (initialSeconds !== prevInitialSeconds) {
-    setPrevInitialSeconds(initialSeconds);
-    setTimeLeft(initialSeconds);
-  }
+  useEffect(() => {
+    if (!isRecoveredRef.current) {
+      setTimeLeft(initialSeconds);
+    }
+  }, [initialSeconds]);
 
   useEffect(() => {
     onTimeoutRef.current = onTimeout;
@@ -58,6 +59,11 @@ export default function useAssessmentTimer({
     [initialSeconds]
   );
 
+  const handleSetTimeLeft = useCallback((seconds) => {
+    isRecoveredRef.current = true;
+    setTimeLeft(seconds);
+  }, []);
+
   return {
     timeLeft,
     formattedTime: formatTime(timeLeft),
@@ -65,7 +71,7 @@ export default function useAssessmentTimer({
     pauseTimer,
     startTimer,
     resetTimer,
-    setTimeLeft,
+    setTimeLeft: handleSetTimeLeft,
   };
 }
 

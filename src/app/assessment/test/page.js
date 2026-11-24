@@ -18,11 +18,15 @@ import { useAssessmentTimer } from '@/hooks/useAssessmentTimer';
 import {
   getTestRecovery,
   saveTestRecovery,
+  getCurrentCandidate,
 } from '@/services/assessmentService';
 import {
   post_assessment_submit_request,
   post_assessment_submit_response_clear,
+  get_settings_request,
 } from '@/redux/assessment/action';
+import { get_questions_request } from '@/redux/questions/action';
+import { set_current_candidate } from '@/redux/candidates/action';
 
 export default function OnlineTestPage() {
   const router = useRouter();
@@ -37,12 +41,41 @@ export default function OnlineTestPage() {
   } = useSelector((state) => state.assessment);
   const { get_questions_data: questions } = useSelector((state) => state.questions);
 
-  const [qIndex, setQIndex] = useState(0);
-  const [answers, setAnswers] = useState({});
-  const [reviewSet, setReviewSet] = useState(new Set());
+  const [qIndex, setQIndex] = useState(() => {
+    if (typeof window === 'undefined') return 0;
+    const recovery = getTestRecovery();
+    return typeof recovery?.qIndex === 'number' ? recovery.qIndex : 0;
+  });
+  const [answers, setAnswers] = useState(() => {
+    if (typeof window === 'undefined') return {};
+    const recovery = getTestRecovery();
+    return recovery?.answers || {};
+  });
+  const [reviewSet, setReviewSet] = useState(() => {
+    if (typeof window === 'undefined') return new Set();
+    const recovery = getTestRecovery();
+    return recovery?.review && Array.isArray(recovery.review) ? new Set(recovery.review) : new Set();
+  });
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const hasLoadedRecovery = useRef(false);
   const hasWarnedTimeRef = useRef(false);
+
+  // On mount: fetch settings and questions if missing from Redux
+  useEffect(() => {
+    dispatch(get_settings_request());
+    dispatch(get_questions_request());
+  }, [dispatch]);
+
+  // Warn before accidental page reload or tab closure during active assessment
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
 
   // Monitor network connection status during active assessment
   useEffect(() => {
@@ -107,13 +140,16 @@ export default function OnlineTestPage() {
         });
       }
 
-      if (currentCandidate) {
+      const candidateObj = currentCandidate || getCurrentCandidate();
+      if (candidateObj) {
         saveTestRecovery({
           answers,
           review: Array.from(reviewSet),
           qIndex,
           timeLeft,
-          email: currentCandidate.email,
+          savedAt: Date.now(),
+          email: candidateObj.email,
+          candidate: candidateObj,
         });
       }
     },
@@ -146,45 +182,64 @@ export default function OnlineTestPage() {
     }
   }, [post_assessment_submit_error, dispatch]);
 
-  // Handle redirect if no candidate registered
+  // Rehydrate candidate from localStorage / testRecovery if Redux was reset by reload
   useEffect(() => {
     if (typeof window !== 'undefined' && !currentCandidate) {
-      router.replace('/register');
-    }
-  }, [currentCandidate, router]);
-
-  // Load recovery from localStorage on mount safely
-  useEffect(() => {
-    if (!currentCandidate || hasLoadedRecovery.current) return;
-
-    const timeoutId = setTimeout(() => {
+      const stored = getCurrentCandidate();
       const recovery = getTestRecovery();
-      if (recovery && recovery.email === currentCandidate.email) {
-        if (recovery.answers) setAnswers(recovery.answers);
-        if (recovery.review && Array.isArray(recovery.review)) {
-          setReviewSet(new Set(recovery.review));
-        }
-        if (typeof recovery.qIndex === 'number' && recovery.qIndex < activeQuestions.length) {
-          setQIndex(recovery.qIndex);
-        }
-        if (typeof recovery.timeLeft === 'number' && recovery.timeLeft > 0) {
-          timer.setTimeLeft(recovery.timeLeft);
-        }
-      }
-      hasLoadedRecovery.current = true;
-    }, 0);
+      const candidateToRestore = stored || recovery?.candidate;
 
-    return () => clearTimeout(timeoutId);
+      if (candidateToRestore) {
+        dispatch(set_current_candidate(candidateToRestore));
+      } else {
+        router.replace('/register');
+      }
+    }
+  }, [currentCandidate, dispatch, router]);
+
+  // Restore timer countdown and notify candidate of session recovery
+  useEffect(() => {
+    if (hasLoadedRecovery.current) return;
+
+    const recovery = getTestRecovery();
+    const candidateEmail = currentCandidate?.email || recovery?.email;
+
+    if (recovery && candidateEmail && recovery.email === candidateEmail) {
+      // Restore timer accounting for time elapsed during reload
+      if (typeof recovery.timeLeft === 'number' && recovery.timeLeft > 0) {
+        let adjustedTime = recovery.timeLeft;
+        if (recovery.savedAt) {
+          const elapsed = Math.floor((Date.now() - recovery.savedAt) / 1000);
+          if (elapsed > 0) {
+            adjustedTime = Math.max(1, recovery.timeLeft - elapsed);
+          }
+        }
+        timer.setTimeLeft(adjustedTime);
+      }
+
+      if (activeQuestions.length > 0) {
+        hasLoadedRecovery.current = true;
+        toast.info('Assessment session restored. Your answers and timer are preserved.', {
+          title: 'Session Restored',
+          duration: 4000,
+        });
+      }
+    } else if (activeQuestions.length > 0) {
+      hasLoadedRecovery.current = true;
+    }
   }, [currentCandidate, activeQuestions.length, timer]);
 
   const saveStateToStorage = (updatedAnswers, updatedReview, updatedIndex) => {
-    if (!currentCandidate) return;
+    const candidateObj = currentCandidate || getCurrentCandidate();
+    if (!candidateObj) return;
     saveTestRecovery({
       answers: updatedAnswers,
       review: Array.from(updatedReview),
       qIndex: updatedIndex,
       timeLeft: timer.timeLeft,
-      email: currentCandidate.email,
+      savedAt: Date.now(),
+      email: candidateObj.email,
+      candidate: candidateObj,
     });
   };
 

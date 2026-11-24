@@ -1,7 +1,10 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useSyncExternalStore } from 'react';
+import { createPortal } from 'react-dom';
 import { LogOut, AlertTriangle, Loader2, X } from 'lucide-react';
+
+const emptySubscribe = () => () => {};
 
 export default function LogoutConfirmModal({
   isOpen,
@@ -10,18 +13,27 @@ export default function LogoutConfirmModal({
   isAssessmentActive = false,
   role = 'admin',
 }) {
+  const isClient = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
+
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const cancelButtonRef = useRef(null);
   const modalRef = useRef(null);
 
+  const handleClose = useCallback(() => {
+    if (isLoading) return;
+    setIsLoading(false);
+    setErrorMessage(null);
+    onClose();
+  }, [isLoading, onClose]);
+
   // Focus management and body scroll locking
   useEffect(() => {
-    if (!isOpen) {
-      setIsLoading(false);
-      setErrorMessage(null);
-      return;
-    }
+    if (!isOpen) return;
 
     // Auto-focus cancel button for safe keyboard accessibility
     const timer = setTimeout(() => {
@@ -33,7 +45,7 @@ export default function LogoutConfirmModal({
 
     const handleKeyDown = (e) => {
       if (e.key === 'Escape' && !isLoading) {
-        onClose();
+        handleClose();
       }
     };
 
@@ -44,9 +56,9 @@ export default function LogoutConfirmModal({
       window.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = originalOverflow;
     };
-  }, [isOpen, isLoading, onClose]);
+  }, [isOpen, isLoading, handleClose]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !isClient) return null;
 
   const handleConfirmClick = async () => {
     if (isLoading) return;
@@ -64,11 +76,18 @@ export default function LogoutConfirmModal({
 
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget && !isLoading) {
-      onClose();
+      handleClose();
     }
   };
 
-  return (
+  const modalRoot =
+    (typeof document !== 'undefined' &&
+      (document.getElementById('modal-root') || document.body)) ||
+    null;
+
+  if (!modalRoot) return null;
+
+  const modalContent = (
     <div
       className="logout-modal-backdrop"
       onClick={handleBackdropClick}
@@ -82,7 +101,7 @@ export default function LogoutConfirmModal({
         <button
           type="button"
           className="modal-close-icon"
-          onClick={onClose}
+          onClick={handleClose}
           disabled={isLoading}
           aria-label="Close dialog"
         >
@@ -135,7 +154,7 @@ export default function LogoutConfirmModal({
           <button
             type="button"
             className="btn-cancel"
-            onClick={onClose}
+            onClick={handleClose}
             disabled={isLoading}
             ref={cancelButtonRef}
           >
@@ -166,15 +185,23 @@ export default function LogoutConfirmModal({
       <style jsx>{`
         .logout-modal-backdrop {
           position: fixed;
-          inset: 0;
-          background: rgba(15, 23, 42, 0.48);
-          backdrop-filter: blur(5px);
-          -webkit-backdrop-filter: blur(5px);
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          width: 100vw;
+          height: 100vh;
+          height: 100dvh;
+          background: rgba(15, 23, 42, 0.58);
+          backdrop-filter: blur(6px);
+          -webkit-backdrop-filter: blur(6px);
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 16px;
-          z-index: 9999;
+          padding: 20px 16px;
+          z-index: 99999;
+          overflow-y: auto;
+          box-sizing: border-box;
           animation: backdropFade 0.2s ease forwards;
         }
 
@@ -191,23 +218,27 @@ export default function LogoutConfirmModal({
           position: relative;
           width: 100%;
           max-width: 440px;
+          margin: auto;
           background: #ffffff;
           border: 1px solid #e2e8f0;
           border-radius: 20px;
-          box-shadow: 0 24px 48px -12px rgba(15, 23, 42, 0.22),
-                      0 4px 12px -2px rgba(15, 23, 42, 0.08);
+          box-shadow: 0 24px 48px -12px rgba(15, 23, 42, 0.28),
+                      0 8px 18px -4px rgba(15, 23, 42, 0.12);
           padding: 32px 28px 28px 28px;
           text-align: center;
           display: flex;
           flex-direction: column;
           align-items: center;
+          max-height: calc(100dvh - 40px);
+          overflow-y: auto;
+          box-sizing: border-box;
           animation: cardScale 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         @keyframes cardScale {
           from {
             opacity: 0;
-            transform: scale(0.94) translateY(6px);
+            transform: scale(0.94) translateY(8px);
           }
           to {
             opacity: 1;
@@ -424,4 +455,6 @@ export default function LogoutConfirmModal({
       `}</style>
     </div>
   );
+
+  return createPortal(modalContent, modalRoot);
 }

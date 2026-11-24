@@ -1,7 +1,10 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useSyncExternalStore } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
+
+const emptySubscribe = () => () => {};
 
 export default function Modal({
   isOpen,
@@ -12,6 +15,11 @@ export default function Modal({
   width = '520px',
   showClose = true,
 }) {
+  const isClient = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
   const modalRef = useRef(null);
 
   useEffect(() => {
@@ -35,9 +43,16 @@ export default function Modal({
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !isClient) return null;
 
-  return (
+  const modalRoot =
+    (typeof document !== 'undefined' &&
+      (document.getElementById('modal-root') || document.body)) ||
+    null;
+
+  if (!modalRoot) return null;
+
+  const modalContent = (
     <div
       className="modal-backdrop"
       onClick={(e) => {
@@ -92,4 +107,6 @@ export default function Modal({
       </div>
     </div>
   );
+
+  return createPortal(modalContent, modalRoot);
 }

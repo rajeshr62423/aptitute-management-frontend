@@ -1,5 +1,12 @@
 import { CANDIDATES_ACTION_TYPES } from './actionType';
 import { DEFAULT_CANDIDATES } from '@/services/storageService';
+import {
+  getCurrentCandidate,
+  setCurrentCandidate,
+  clearCurrentCandidate,
+  getSelectedCandidate,
+  setSelectedCandidate,
+} from '@/services/assessmentService';
 
 const initialValues = {
   post_candidate_register_loading: false,
@@ -14,8 +21,8 @@ const initialValues = {
   get_candidate_detail_data: null,
   get_candidate_detail_error: null,
 
-  current_candidate: null,
-  selected_candidate: null,
+  current_candidate: typeof window !== 'undefined' ? getCurrentCandidate() : null,
+  selected_candidate: typeof window !== 'undefined' ? getSelectedCandidate() : null,
 };
 
 const candidatesReducer = (state = initialValues, action) => {
@@ -27,14 +34,19 @@ const candidatesReducer = (state = initialValues, action) => {
         post_candidate_register_error: null,
       };
 
-    case CANDIDATES_ACTION_TYPES.POST_CANDIDATE_REGISTER_RESPONSE:
+    case CANDIDATES_ACTION_TYPES.POST_CANDIDATE_REGISTER_RESPONSE: {
+      const candidate = action.payload?.error ? state.current_candidate : action.payload?.candidate;
+      if (candidate) {
+        setCurrentCandidate(candidate);
+      }
       return {
         ...state,
         post_candidate_register_loading: false,
         post_candidate_register_data: action.payload?.error ? null : action.payload,
         post_candidate_register_error: action.payload?.error || null,
-        current_candidate: action.payload?.error ? state.current_candidate : action.payload?.candidate,
+        current_candidate: candidate,
       };
+    }
 
     case CANDIDATES_ACTION_TYPES.POST_CANDIDATE_REGISTER_RESPONSE_CLEAR:
       return {
@@ -87,12 +99,20 @@ const candidatesReducer = (state = initialValues, action) => {
       };
 
     case CANDIDATES_ACTION_TYPES.SET_CURRENT_CANDIDATE:
+      if (action.payload) {
+        setCurrentCandidate(action.payload);
+      } else {
+        clearCurrentCandidate();
+      }
       return {
         ...state,
         current_candidate: action.payload,
       };
 
     case CANDIDATES_ACTION_TYPES.SET_SELECTED_CANDIDATE:
+      if (action.payload) {
+        setSelectedCandidate(action.payload);
+      }
       return {
         ...state,
         selected_candidate: action.payload,

@@ -7,7 +7,8 @@ import CandidateLayout from '@/components/layout/CandidateLayout';
 import CandidateProfileDropdown from '@/components/candidate/CandidateProfileDropdown';
 import { FullScreenLoader } from '@/components/common/loading/GlobalLoader';
 import CardSkeleton from '@/components/common/loading/CardSkeleton';
-import { clearTestRecovery, saveTestRecovery } from '@/services/assessmentService';
+import { clearTestRecovery, saveTestRecovery, getCurrentCandidate } from '@/services/assessmentService';
+import { set_current_candidate } from '@/redux/candidates/action';
 import { get_settings_request } from '@/redux/assessment/action';
 import { get_questions_request } from '@/redux/questions/action';
 import { toast, showToast } from '@/utils/toast';
@@ -52,9 +53,14 @@ export default function AssessmentInstructionsPage() {
 
   useEffect(() => {
     if (isClient && !current_candidate) {
-      router.replace('/register');
+      const stored = getCurrentCandidate();
+      if (stored) {
+        dispatch(set_current_candidate(stored));
+      } else {
+        router.replace('/register');
+      }
     }
-  }, [isClient, current_candidate, router]);
+  }, [isClient, current_candidate, dispatch, router]);
 
   const activeQuestions = (questions || [])
     .filter((q) => q.active)
@@ -83,12 +89,15 @@ export default function AssessmentInstructionsPage() {
 
     // Reset/initialize test recovery
     clearTestRecovery();
+    const candidateObj = current_candidate || getCurrentCandidate();
     const initialRecovery = {
       answers: {},
       review: [],
       qIndex: 0,
       timeLeft: durationMinutes * 60,
-      email: current_candidate?.email || '',
+      email: candidateObj?.email || '',
+      candidate: candidateObj,
+      savedAt: Date.now(),
     };
     saveTestRecovery(initialRecovery);
 

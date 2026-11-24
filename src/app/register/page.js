@@ -21,6 +21,7 @@ import {
 } from '@/redux/candidates/action';
 import { get_settings_request } from '@/redux/assessment/action';
 import { DEFAULT_TERMS, DEFAULT_PRIVACY } from '@/services/storageService';
+import { setCurrentCandidate } from '@/services/assessmentService';
 import { toast, showToast } from '@/utils/toast';
 import { ArrowRight, Target, BarChart3, Briefcase, Sparkles, Loader2 } from 'lucide-react';
 
@@ -91,6 +92,9 @@ export default function RegisterPage() {
   // Handle Redux registration response
   useEffect(() => {
     if (post_candidate_register_data) {
+      if (post_candidate_register_data.candidate) {
+        setCurrentCandidate(post_candidate_register_data.candidate);
+      }
       toast.success('Registration completed! Preparing your assessment session...', {
         title: 'Welcome!',
       });
