@@ -8,9 +8,10 @@ import {
   delete_question_response,
 } from './action';
 
-function* getQuestionsSaga() {
+function* getQuestionsSaga(action) {
   try {
-    const response = yield call(apiClient.get, '/api/questions');
+    const config = action?.payload ? { params: action.payload } : undefined;
+    const response = yield call(apiClient.get, '/api/questions', config);
     yield put(get_questions_response(response.data));
   } catch (error) {
     yield put({

@@ -21,8 +21,8 @@ import {
 } from '@/redux/candidates/action';
 import { get_settings_request } from '@/redux/assessment/action';
 import { DEFAULT_TERMS, DEFAULT_PRIVACY } from '@/services/storageService';
-import { showToast } from '@/utils/toast';
-import { ArrowRight, Target, BarChart3, Briefcase, Sparkles } from 'lucide-react';
+import { toast, showToast } from '@/utils/toast';
+import { ArrowRight, Target, BarChart3, Briefcase, Sparkles, Loader2 } from 'lucide-react';
 
 const registrationSchema = yup.object().shape({
   name: yup
@@ -91,6 +91,9 @@ export default function RegisterPage() {
   // Handle Redux registration response
   useEffect(() => {
     if (post_candidate_register_data) {
+      toast.success('Registration completed! Preparing your assessment session...', {
+        title: 'Welcome!',
+      });
       dispatch(post_candidate_register_response_clear());
       router.push('/assessment/instructions');
     }
@@ -99,7 +102,9 @@ export default function RegisterPage() {
   // Handle Redux registration error
   useEffect(() => {
     if (post_candidate_register_error) {
-      showToast(post_candidate_register_error);
+      toast.error(post_candidate_register_error, {
+        title: 'Registration Error',
+      });
       dispatch(post_candidate_register_response_clear());
     }
   }, [post_candidate_register_error, dispatch]);
@@ -164,7 +169,7 @@ export default function RegisterPage() {
           {/* Left section – Branding and introduction */}
           <div className="registration-left">
             <div className="left-badge">
-              <Sparkles size={14} style={{ color: '#FF6B16' }} />
+              <Sparkles size={13} style={{ color: '#FF6B16' }} />
               <span>Next-Gen Candidate Assessment</span>
             </div>
 
@@ -180,7 +185,7 @@ export default function RegisterPage() {
               {/* Highlight 1: Assess Your Skills */}
               <div className="benefit-item">
                 <div className="benefit-icon-box">
-                  <Target size={22} style={{ color: '#FF6B16' }} />
+                  <Target size={20} style={{ color: '#FF6B16' }} />
                 </div>
                 <div>
                   <h3 className="benefit-title">Assess Your Skills</h3>
@@ -193,7 +198,7 @@ export default function RegisterPage() {
               {/* Highlight 2: Discover Your Strengths */}
               <div className="benefit-item">
                 <div className="benefit-icon-box">
-                  <BarChart3 size={22} style={{ color: '#FF6B16' }} />
+                  <BarChart3 size={20} style={{ color: '#FF6B16' }} />
                 </div>
                 <div>
                   <h3 className="benefit-title">Discover Your Strengths</h3>
@@ -206,7 +211,7 @@ export default function RegisterPage() {
               {/* Highlight 3: Unlock Career Opportunities */}
               <div className="benefit-item">
                 <div className="benefit-icon-box">
-                  <Briefcase size={22} style={{ color: '#FF6B16' }} />
+                  <Briefcase size={20} style={{ color: '#FF6B16' }} />
                 </div>
                 <div>
                   <h3 className="benefit-title">Unlock Career Opportunities</h3>
@@ -219,21 +224,21 @@ export default function RegisterPage() {
 
             {/* Trust and Social Proof Strip */}
             <div className="trust-strip">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <div style={{ display: 'flex' }}>
                   <span className="trust-avatar" style={{ background: '#FFEDD5', color: '#EA580C' }}>RK</span>
-                  <span className="trust-avatar" style={{ background: '#DBEAFE', color: '#2563EB', marginLeft: '-8px' }}>AS</span>
-                  <span className="trust-avatar" style={{ background: '#DCFCE7', color: '#16A34A', marginLeft: '-8px' }}>KP</span>
+                  <span className="trust-avatar" style={{ background: '#DBEAFE', color: '#2563EB', marginLeft: '-6px' }}>AS</span>
+                  <span className="trust-avatar" style={{ background: '#DCFCE7', color: '#16A34A', marginLeft: '-6px' }}>KP</span>
                 </div>
                 <div>
-                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#172033' }}>10,000+ Candidates</div>
-                  <div style={{ fontSize: '11px', color: '#64748B' }}>Assessed &amp; Benchmarked</div>
+                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#172033', lineHeight: 1.2 }}>10,000+ Candidates</div>
+                  <div style={{ fontSize: '10.5px', color: '#64748B', lineHeight: 1.2 }}>Assessed &amp; Benchmarked</div>
                 </div>
               </div>
-              <div style={{ height: '26px', width: '1px', background: '#E2E8F0' }} />
+              <div style={{ height: '22px', width: '1px', background: '#E2E8F0' }} />
               <div>
-                <div style={{ fontSize: '13px', fontWeight: 800, color: '#FF6B16' }}>15 Mins</div>
-                <div style={{ fontSize: '11px', color: '#64748B' }}>Adaptive Test</div>
+                <div style={{ fontSize: '12.5px', fontWeight: 800, color: '#FF6B16', lineHeight: 1.2 }}>15 Mins</div>
+                <div style={{ fontSize: '10.5px', color: '#64748B', lineHeight: 1.2 }}>Adaptive Test</div>
               </div>
             </div>
           </div>
@@ -241,34 +246,24 @@ export default function RegisterPage() {
           {/* Right section – Registration form card */}
           <div className="registration-right">
             <div className="registration-card">
-              <div style={{ marginBottom: '22px' }}>
+              <div className="card-header-block">
                 <span className="tag" style={{
                   background: '#FFF7ED',
                   color: '#EA580C',
                   border: '1px solid #FFEDD5',
                   fontWeight: 700,
-                  fontSize: '11px',
+                  fontSize: '10.5px',
                   letterSpacing: '0.08em',
-                  padding: '4px 10px',
-                  borderRadius: '6px',
+                  padding: '3px 8px',
+                  borderRadius: '5px',
                   display: 'inline-block'
                 }}>
                   CANDIDATE REGISTRATION
                 </span>
-                <h2 style={{
-                  fontSize: '24px',
-                  fontWeight: 800,
-                  color: '#172033',
-                  letterSpacing: '-0.025em',
-                  margin: '12px 0 6px 0'
-                }}>
+                <h2 className="card-title">
                   Start Your Assessment Journey
                 </h2>
-                <p style={{
-                  fontSize: '14px',
-                  color: '#64748B',
-                  margin: 0
-                }}>
+                <p className="card-subtitle">
                   Register to begin your aptitude assessment.
                 </p>
               </div>
@@ -349,13 +344,20 @@ export default function RegisterPage() {
                   disabled={post_candidate_register_loading}
                   className="btn-register-continue"
                 >
-                  <span>{post_candidate_register_loading ? 'Registering...' : 'Register & Continue'}</span>
-                  {!post_candidate_register_loading && (
-                    <ArrowRight size={17} className="btn-arrow-icon" />
+                  {post_candidate_register_loading ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      <span>Registering...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Register & Continue</span>
+                      <ArrowRight size={16} className="btn-arrow-icon" />
+                    </>
                   )}
                 </button>
 
-                <p className="tiny muted center" style={{ marginTop: '16px', fontSize: '12px', color: '#64748B' }}>
+                <p className="tiny muted center card-disclaimer">
                   By registering, you agree to our{' '}
                   <button
                     type="button"
@@ -389,13 +391,13 @@ export default function RegisterPage() {
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          padding: 7px 16px;
-          border-radius: 8px;
+          padding: 6px 14px;
+          border-radius: 7px;
           border: 1px solid #e2e8f0;
           background: #ffffff;
           color: #172033;
           font-weight: 600;
-          font-size: 13px;
+          font-size: 12.5px;
           text-decoration: none;
           box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
           transition: all 0.15s ease;
@@ -408,19 +410,23 @@ export default function RegisterPage() {
         .registration-wrapper {
           position: relative;
           width: 100%;
-          max-width: 1220px;
+          max-width: 1180px;
           margin: 0 auto;
-          padding: 64px 24px 72px;
+          padding: clamp(12px, 2vh, 24px) 24px;
           z-index: 1;
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
         }
         .registration-grid {
           display: grid;
-          grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.15fr);
-          gap: 56px;
-          align-items: start;
+          grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+          gap: clamp(24px, 3.5vw, 44px);
+          align-items: center;
         }
         .registration-left {
-          padding-top: 10px;
+          padding-top: 0;
           animation: fadeInLeft 0.4s ease-out;
         }
         .registration-right {
@@ -429,118 +435,139 @@ export default function RegisterPage() {
         .left-badge {
           display: inline-flex;
           align-items: center;
-          gap: 8px;
-          padding: 6px 14px;
+          gap: 6px;
+          padding: 4px 12px;
           border-radius: 9999px;
           background: #fff7ed;
           border: 1px solid #ffedd5;
           color: #ea580c;
-          font-size: 12px;
+          font-size: 11.5px;
           font-weight: 700;
           letter-spacing: 0.02em;
-          margin-bottom: 20px;
+          margin-bottom: clamp(8px, 1.2vh, 14px);
           box-shadow: 0 1px 3px rgba(255, 107, 22, 0.08);
         }
         .left-headline {
-          font-size: clamp(28px, 3.4vw, 42px);
+          font-size: clamp(22px, 2.3vw, 32px);
           font-weight: 800;
           color: #172033;
-          line-height: 1.18;
-          letter-spacing: -0.03em;
-          margin: 0 0 16px 0;
+          line-height: 1.2;
+          letter-spacing: -0.025em;
+          margin: 0 0 clamp(6px, 1vh, 10px) 0;
         }
         .left-description {
-          font-size: 15px;
+          font-size: 13.5px;
           color: #64748b;
-          line-height: 1.6;
-          margin: 0 0 34px 0;
-          max-width: 500px;
+          line-height: 1.5;
+          margin: 0 0 clamp(12px, 1.8vh, 18px) 0;
+          max-width: 480px;
         }
         .benefit-list {
           display: flex;
           flex-direction: column;
-          gap: 20px;
+          gap: clamp(8px, 1.2vh, 12px);
         }
         .benefit-item {
           display: flex;
           align-items: flex-start;
-          gap: 16px;
+          gap: 12px;
           transition: transform 0.2s ease;
         }
         .benefit-item:hover {
           transform: translateX(3px);
         }
         .benefit-icon-box {
-          width: 44px;
-          height: 44px;
-          border-radius: 12px;
+          width: 36px;
+          height: 36px;
+          border-radius: 9px;
           background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
           border: 1px solid #fed7aa;
           display: grid;
           place-items: center;
           flex-shrink: 0;
-          box-shadow: 0 4px 10px rgba(255, 107, 22, 0.12);
+          box-shadow: 0 3px 8px rgba(255, 107, 22, 0.1);
         }
         .benefit-title {
-          font-size: 15px;
+          font-size: 13.5px;
           font-weight: 700;
           color: #172033;
-          margin: 0 0 3px 0;
+          margin: 0 0 2px 0;
         }
         .benefit-desc {
-          font-size: 13px;
+          font-size: 12px;
           color: #64748b;
-          line-height: 1.5;
+          line-height: 1.4;
           margin: 0;
         }
         .trust-strip {
-          margin-top: 36px;
-          padding: 16px 20px;
-          border-radius: 14px;
+          margin-top: clamp(12px, 1.6vh, 18px);
+          padding: 8px 14px;
+          border-radius: 12px;
           background: #ffffff;
           border: 1px solid #e2e8f0;
-          box-shadow: 0 4px 14px -2px rgba(23, 32, 51, 0.05);
+          box-shadow: 0 3px 10px -2px rgba(23, 32, 51, 0.04);
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 16px;
-          max-width: 500px;
+          gap: 12px;
+          max-width: 480px;
         }
         .trust-avatar {
-          width: 30px;
-          height: 30px;
+          width: 26px;
+          height: 26px;
           border-radius: 50%;
           display: grid;
           place-items: center;
-          font-size: 11px;
+          font-size: 10px;
           font-weight: 800;
           border: 2px solid white;
         }
         .registration-card {
           background: #ffffff;
           border: 1px solid #e2e8f0;
-          border-radius: 18px;
-          padding: 34px 32px;
-          box-shadow: 0 20px 45px -12px rgba(23, 32, 51, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+          border-radius: 16px;
+          padding: clamp(16px, 2vh, 22px) clamp(18px, 2vw, 24px);
+          box-shadow: 0 14px 32px -8px rgba(23, 32, 51, 0.07), 0 1px 3px rgba(0, 0, 0, 0.04);
           transition: box-shadow 0.25s ease, transform 0.25s ease;
         }
-        .registration-card:hover {
-          box-shadow: 0 24px 55px -12px rgba(23, 32, 51, 0.12), 0 3px 8px rgba(0, 0, 0, 0.04);
+        .card-header-block {
+          margin-bottom: clamp(8px, 1.2vh, 12px);
+        }
+        .card-title {
+          font-size: clamp(18px, 2vh, 21px);
+          font-weight: 800;
+          color: #172033;
+          letter-spacing: -0.025em;
+          margin: 6px 0 2px 0;
+        }
+        .card-subtitle {
+          font-size: 12.5px;
+          color: #64748b;
+          margin: 0;
+        }
+        .form-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: clamp(8px, 1.1vh, 11px);
+        }
+        .registration-card :global(.field) {
+          margin-bottom: 0;
         }
         .registration-card :global(.field label) {
-          font-size: 13px !important;
+          font-size: 11.5px !important;
           font-weight: 600 !important;
           color: #172033 !important;
-          margin-bottom: 6px !important;
+          margin-bottom: 3px !important;
           display: block !important;
         }
         .registration-card :global(.field input:not(.phone-number-field)) {
-          height: 44px !important;
+          height: 38px !important;
           border-radius: 8px !important;
           border: 1px solid #d1d5db !important;
-          font-size: 14px !important;
+          font-size: 13px !important;
           color: #172033 !important;
           background: #ffffff !important;
+          padding: 0 12px !important;
           transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
         }
         .registration-card :global(.field input:not(.phone-number-field):hover) {
@@ -553,18 +580,31 @@ export default function RegisterPage() {
         .registration-card :global(.field input::placeholder) {
           color: #94a3b8 !important;
         }
+        .registration-card :global(.aptitudepro-phone-container) {
+          height: 38px !important;
+          min-height: 38px !important;
+          border-radius: 8px !important;
+        }
         .registration-card :global(.phone-number-field) {
           border: none !important;
           outline: none !important;
           background: transparent !important;
           box-shadow: none !important;
           height: 100% !important;
-          padding: 0 12px 0 0 !important;
+          padding: 0 10px 0 0 !important;
+          font-size: 13px !important;
+        }
+        .registration-card :global(.field button[role="combobox"]) {
+          height: 38px !important;
+          min-height: 38px !important;
+          border-radius: 8px !important;
+          font-size: 13px !important;
+          padding: 0 10px !important;
         }
         .btn-register-continue {
           width: 100%;
-          margin-top: 24px;
-          height: 46px;
+          margin-top: clamp(10px, 1.4vh, 14px);
+          height: 38px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -572,16 +612,16 @@ export default function RegisterPage() {
           background: linear-gradient(135deg, #ff6b16 0%, #ea580c 100%);
           color: #ffffff;
           border: none;
-          border-radius: 10px;
-          font-size: 15px;
+          border-radius: 8px;
+          font-size: 13.5px;
           font-weight: 700;
           cursor: pointer;
-          box-shadow: 0 8px 20px -4px rgba(255, 107, 22, 0.38);
+          box-shadow: 0 4px 14px -2px rgba(255, 107, 22, 0.35);
           transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .btn-register-continue:hover:not(:disabled) {
           background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
-          box-shadow: 0 12px 26px -4px rgba(255, 107, 22, 0.48);
+          box-shadow: 0 8px 20px -2px rgba(255, 107, 22, 0.45);
           transform: translateY(-1px);
         }
         .btn-register-continue:active:not(:disabled) {
@@ -596,6 +636,11 @@ export default function RegisterPage() {
         }
         .btn-register-continue:hover:not(:disabled) .btn-arrow-icon {
           transform: translateX(4px);
+        }
+        .card-disclaimer {
+          margin-top: 8px !important;
+          font-size: 11px !important;
+          color: #64748b !important;
         }
         .disclaimer-link {
           background: none;
@@ -632,11 +677,12 @@ export default function RegisterPage() {
         }
         @media (max-width: 1024px) {
           .registration-wrapper {
-            padding: 48px 20px 56px;
+            padding: 28px 20px 36px;
+            justify-content: flex-start;
           }
           .registration-grid {
             grid-template-columns: 1fr;
-            gap: 40px;
+            gap: 28px;
           }
           .registration-left {
             padding-top: 0;
@@ -644,11 +690,14 @@ export default function RegisterPage() {
         }
         @media (max-width: 640px) {
           .registration-wrapper {
-            padding: 36px 16px 48px;
+            padding: 20px 16px 32px;
           }
           .registration-card {
-            padding: 24px 18px;
+            padding: 18px 14px;
             border-radius: 14px;
+          }
+          .form-grid {
+            grid-template-columns: 1fr;
           }
         }
       `}</style>

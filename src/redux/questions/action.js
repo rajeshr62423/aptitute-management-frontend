@@ -1,7 +1,8 @@
 import { QUESTIONS_ACTION_TYPES } from './actionType';
 
-export const get_questions_request = () => ({
+export const get_questions_request = (payload) => ({
   type: QUESTIONS_ACTION_TYPES.GET_QUESTIONS_REQUEST,
+  payload,
 });
 
 export const get_questions_response = (payload) => ({

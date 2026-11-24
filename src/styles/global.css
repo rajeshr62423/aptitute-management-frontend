@@ -71,14 +71,14 @@ a:hover {
 .brand-mark {
   width: 30px;
   height: 30px;
-  border-radius: 10px;
-  background: var(--orange);
-  color: white;
-  display: grid;
-  place-items: center;
+  border-radius: 8px;
+  background: url('/app-logo.png') center/cover no-repeat;
+  color: transparent;
+  display: inline-block;
   font-weight: 800;
   font-size: 17px;
   box-shadow: 0 3px 8px #f9731630;
+  flex-shrink: 0;
 }
 
 .tag {

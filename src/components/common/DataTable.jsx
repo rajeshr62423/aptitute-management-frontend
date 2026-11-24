@@ -3,10 +3,12 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Select from '@/components/common/Select';
+import Skeleton from '@/components/common/loading/Skeleton';
 
 export default function DataTable({
   columns = [],
   data = [],
+  loading = false,
   emptyMessage = 'No records found.',
   page = 1,
   pageSize = 10,
@@ -56,7 +58,21 @@ export default function DataTable({
             </tr>
           </thead>
           <tbody>
-            {data.length === 0 ? (
+            {loading ? (
+              Array.from({ length: Math.min(pageSize || 5, 8) }).map((_, rIdx) => (
+                <tr key={rIdx}>
+                  {columns.map((col, colIdx) => (
+                    <td key={col.key || colIdx} style={col.cellStyle || {}}>
+                      <Skeleton
+                        width={colIdx === 0 ? '75%' : colIdx === columns.length - 1 ? '40%' : '60%'}
+                        height="16px"
+                        borderRadius="4px"
+                      />
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : data.length === 0 ? (
               <tr>
                 <td colSpan={columns.length} className="empty">
                   {emptyMessage}

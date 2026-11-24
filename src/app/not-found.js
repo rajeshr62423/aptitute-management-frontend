@@ -16,7 +16,11 @@ export default function NotFound() {
     >
       <div className="panel center" style={{ maxWidth: '440px', padding: '36px' }}>
         <div className="brand" style={{ justifyContent: 'center', marginBottom: '16px' }}>
-          <span className="brand-mark">A</span>
+          <img
+            src="/app-logo.png"
+            alt="AptitudePro"
+            style={{ width: '32px', height: '32px', borderRadius: '8px', objectFit: 'cover' }}
+          />
           <span>AptitudePro</span>
         </div>
         <h1 className="page-title" style={{ fontSize: '32px', color: 'var(--orange)' }}>

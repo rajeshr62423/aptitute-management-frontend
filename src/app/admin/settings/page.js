@@ -18,7 +18,7 @@ import {
   put_settings_response_clear,
 } from '@/redux/assessment/action';
 import { get_questions_request } from '@/redux/questions/action';
-import { showToast } from '@/utils/toast';
+import { toast, showToast } from '@/utils/toast';
 
 const settingsSchema = yup.object().shape({
   duration: yup
@@ -54,7 +54,7 @@ const settingsSchema = yup.object().shape({
   privacy: yup.string().nullable(),
 });
 
-function SettingsForm({ settings, activeQuestionsCount }) {
+function SettingsForm({ settings, activeQuestionsCount, isSaving = false }) {
   const dispatch = useDispatch();
 
   const {
@@ -195,7 +195,7 @@ function SettingsForm({ settings, activeQuestionsCount }) {
 
       <div className="divider" />
 
-      <Button type="submit" variant="primary">
+      <Button type="submit" variant="primary" loading={isSaving} loadingText="Saving Settings...">
         Save Settings
       </Button>
     </form>
@@ -205,9 +205,12 @@ function SettingsForm({ settings, activeQuestionsCount }) {
 export default function AssessmentSettingsPage() {
   const dispatch = useDispatch();
 
-  const { get_settings_data: settings, put_settings_data } = useSelector(
-    (state) => state.assessment
-  );
+  const {
+    get_settings_data: settings,
+    put_settings_data,
+    put_settings_loading,
+    put_settings_error,
+  } = useSelector((state) => state.assessment);
   const { get_questions_data: questions } = useSelector((state) => state.questions);
 
   useEffect(() => {
@@ -217,10 +220,17 @@ export default function AssessmentSettingsPage() {
 
   useEffect(() => {
     if (put_settings_data) {
-      showToast('Assessment settings saved');
+      toast.success('Assessment settings saved successfully.', { title: 'Settings Saved' });
       dispatch(put_settings_response_clear());
     }
   }, [put_settings_data, dispatch]);
+
+  useEffect(() => {
+    if (put_settings_error) {
+      toast.error(put_settings_error, { title: 'Save Failed' });
+      dispatch(put_settings_response_clear());
+    }
+  }, [put_settings_error, dispatch]);
 
   const activeQuestionsCount = (questions || []).filter((q) => q.active).length;
 
@@ -238,6 +248,7 @@ export default function AssessmentSettingsPage() {
           key={settings ? `${settings._id || 'loaded'}-${settings.duration}-${settings.pass}-${settings.terms ? settings.terms.length : 0}` : 'loading'}
           settings={settings}
           activeQuestionsCount={activeQuestionsCount}
+          isSaving={put_settings_loading}
         />
       </section>
     </AdminLayout>

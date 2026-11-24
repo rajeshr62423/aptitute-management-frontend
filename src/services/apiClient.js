@@ -71,11 +71,40 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    const message =
-      error.response?.data?.message ||
-      error.message ||
-      'An unexpected error occurred';
-    return Promise.reject({ ...error, message });
+    let userMessage = 'An unexpected error occurred. Please try again.';
+
+    if (error.response) {
+      const status = error.response.status;
+      const serverMessage = error.response.data?.message;
+
+      if (serverMessage && typeof serverMessage === 'string') {
+        userMessage = serverMessage;
+      } else if (Array.isArray(serverMessage) && serverMessage.length > 0) {
+        userMessage = serverMessage.join(', ');
+      } else if (status === 400) {
+        userMessage = 'Invalid request. Please check the submitted data.';
+      } else if (status === 401) {
+        userMessage = 'Session expired or invalid credentials. Please sign in again.';
+      } else if (status === 403) {
+        userMessage = 'You do not have permission to access this resource.';
+      } else if (status === 404) {
+        userMessage = 'The requested resource could not be found.';
+      } else if (status === 409) {
+        userMessage = 'Conflict detected. This record may already exist.';
+      } else if (status === 422) {
+        userMessage = 'Validation failed. Please verify your input.';
+      } else if (status === 429) {
+        userMessage = 'Too many requests. Please wait a moment and try again.';
+      } else if (status >= 500) {
+        userMessage = 'Server is currently unavailable. Please try again later.';
+      }
+    } else if (error.code === 'ECONNABORTED') {
+      userMessage = 'The request timed out. Please check your connection and try again.';
+    } else if (error.code === 'ERR_NETWORK' || !navigator.onLine) {
+      userMessage = 'Network connection interrupted. Please check your internet connection.';
+    }
+
+    return Promise.reject({ ...error, message: userMessage });
   }
 );
 

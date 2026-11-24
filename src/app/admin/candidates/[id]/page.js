@@ -10,7 +10,7 @@ import StatCard from '@/components/common/StatCard';
 import { get_candidate_detail_request } from '@/redux/candidates/action';
 import { get_questions_request } from '@/redux/questions/action';
 import { exportSingleCandidateResult } from '@/utils/csvExport';
-import { showToast } from '@/utils/toast';
+import { toast, showToast } from '@/utils/toast';
 import { ArrowLeft, Download } from 'lucide-react';
 
 function CandidateDetailContent() {
@@ -46,7 +46,9 @@ function CandidateDetailContent() {
   const handleExport = () => {
     if (candidate) {
       exportSingleCandidateResult(candidate);
-      showToast('Candidate result downloaded');
+      toast.success(`Result report exported for ${candidate.name}.`, {
+        title: 'Export Complete',
+      });
     }
   };
 

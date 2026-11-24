@@ -8,6 +8,8 @@ import AdminLayout from '@/components/layout/AdminLayout';
 import StatCard from '@/components/common/StatCard';
 import Badge from '@/components/common/Badge';
 import ActionIconButton from '@/components/common/ActionIconButton';
+import CardSkeleton from '@/components/common/loading/CardSkeleton';
+import TableSkeleton from '@/components/common/loading/TableSkeleton';
 import { get_dashboard_stats_request } from '@/redux/dashboard/action';
 import { set_selected_candidate } from '@/redux/candidates/action';
 
@@ -15,8 +17,8 @@ export default function AdminDashboardPage() {
   const router = useRouter();
   const dispatch = useDispatch();
 
-  const { get_dashboard_stats_data: stats } = useSelector((state) => state.dashboard);
-  const { get_candidates_data: candidates } = useSelector((state) => state.candidates);
+  const { get_dashboard_stats_data: stats, get_dashboard_stats_loading: statsLoading } = useSelector((state) => state.dashboard);
+  const { get_candidates_data: candidates, get_candidates_loading: candidatesLoading } = useSelector((state) => state.candidates);
 
   useEffect(() => {
     dispatch(get_dashboard_stats_request());
@@ -56,26 +58,32 @@ export default function AdminDashboardPage() {
       </div>
 
       <div className="stat-grid">
-        <StatCard
-          label="Total Candidates"
-          value={totalCandidates}
-          note="Registered candidates"
-        />
-        <StatCard
-          label="Tests Completed"
-          value={totalCandidates}
-          note="Completed submissions"
-        />
-        <StatCard
-          label="Average Score"
-          value={`${averageScore}%`}
-          note="Across all submissions"
-        />
-        <StatCard
-          label="Pass Rate"
-          value={`${passRate}%`}
-          note="Candidates who passed"
-        />
+        {statsLoading && !stats ? (
+          <CardSkeleton count={4} />
+        ) : (
+          <>
+            <StatCard
+              label="Total Candidates"
+              value={totalCandidates}
+              note="Registered candidates"
+            />
+            <StatCard
+              label="Tests Completed"
+              value={totalCandidates}
+              note="Completed submissions"
+            />
+            <StatCard
+              label="Average Score"
+              value={`${averageScore}%`}
+              note="Across all submissions"
+            />
+            <StatCard
+              label="Pass Rate"
+              value={`${passRate}%`}
+              note="Candidates who passed"
+            />
+          </>
+        )}
       </div>
 
       <div className="dashboard-grid">
@@ -133,55 +141,59 @@ export default function AdminDashboardPage() {
           </Link>
         </div>
 
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Candidate</th>
-                <th>Email</th>
-                <th>Score</th>
-                <th>Percentage</th>
-                <th>Status</th>
-                <th>Attempt date</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentCandidates.length === 0 ? (
+        {candidatesLoading && (!candidates || candidates.length === 0) ? (
+          <TableSkeleton rows={4} cols={7} />
+        ) : (
+          <div className="table-wrap">
+            <table>
+              <thead>
                 <tr>
-                  <td colSpan={7} className="empty">
-                    No candidates found.
-                  </td>
+                  <th>Candidate</th>
+                  <th>Email</th>
+                  <th>Score</th>
+                  <th>Percentage</th>
+                  <th>Status</th>
+                  <th>Attempt date</th>
+                  <th>Action</th>
                 </tr>
-              ) : (
-                recentCandidates.map((c) => (
-                  <tr key={c.email}>
-                    <td>
-                      <b>{c.name}</b>
-                    </td>
-                    <td>{c.email}</td>
-                    <td>{c.score}/20</td>
-                    <td>{c.percent}%</td>
-                    <td>
-                      <Badge variant={c.status === 'Pass' ? 'pass' : 'fail'}>
-                        {c.status}
-                      </Badge>
-                    </td>
-                    <td>{c.date}</td>
-                    <td style={{ textAlign: 'center' }}>
-                      <ActionIconButton
-                        action="view"
-                        tooltip={`View ${c.name}'s performance`}
-                        ariaLabel={`View details for ${c.name}`}
-                        onClick={() => handleViewCandidate(c)}
-                      />
+              </thead>
+              <tbody>
+                {recentCandidates.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="empty">
+                      No candidates found.
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ) : (
+                  recentCandidates.map((c) => (
+                    <tr key={c.email}>
+                      <td>
+                        <b>{c.name}</b>
+                      </td>
+                      <td>{c.email}</td>
+                      <td>{c.score}/20</td>
+                      <td>{c.percent}%</td>
+                      <td>
+                        <Badge variant={c.status === 'Pass' ? 'pass' : 'fail'}>
+                          {c.status}
+                        </Badge>
+                      </td>
+                      <td>{c.date}</td>
+                      <td style={{ textAlign: 'center' }}>
+                        <ActionIconButton
+                          action="view"
+                          tooltip={`View ${c.name}'s performance`}
+                          ariaLabel={`View details for ${c.name}`}
+                          onClick={() => handleViewCandidate(c)}
+                        />
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
     </AdminLayout>
   );

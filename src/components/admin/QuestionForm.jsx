@@ -34,7 +34,7 @@ export default function QuestionForm({
   const {
     control,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm({
     defaultValues: {
       text: initialData?.text || '',
@@ -177,7 +177,7 @@ export default function QuestionForm({
               Cancel
             </Button>
           )}
-          <Button type="submit" variant="primary">
+          <Button type="submit" variant="primary" loading={isSubmitting} loadingText="Saving Question...">
             Save Question
           </Button>
         </div>

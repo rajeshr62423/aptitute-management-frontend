@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useDispatch } from 'react-redux';
@@ -13,11 +13,15 @@ import {
   LogOut,
 } from 'lucide-react';
 import { post_admin_logout_request } from '@/redux/auth/action';
+import { useAuth } from '@/context/AuthContext';
+import LogoutConfirmModal from '@/components/common/LogoutConfirmModal';
 
 export default function AdminSidebar({ isOpen, onClose }) {
   const pathname = usePathname();
   const router = useRouter();
   const dispatch = useDispatch();
+  const auth = useAuth();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const navGroups = [
     {
@@ -51,61 +55,89 @@ export default function AdminSidebar({ isOpen, onClose }) {
   const handleItemClick = (item) => {
     if (onClose) onClose();
     if (item.action === 'logout') {
+      setShowLogoutModal(true);
+    }
+  };
+
+  const handleConfirmLogout = async () => {
+    try {
+      if (auth?.logout) {
+        auth.logout();
+      }
       dispatch(post_admin_logout_request());
+      setShowLogoutModal(false);
       router.push('/admin/login');
+    } catch (err) {
+      console.error('Logout error:', err);
+      throw err;
     }
   };
 
   return (
-    <aside className={`sidebar ${isOpen ? 'open' : ''}`} id="sidebar">
-      <Link href="/admin/dashboard" className="brand" onClick={onClose}>
-        <span className="brand-mark">A</span>
-        <span>AptitudePro</span>
-      </Link>
+    <>
+      <aside className={`sidebar ${isOpen ? 'open' : ''}`} id="sidebar">
+        <Link
+          href="/admin/dashboard"
+          className="brand"
+          onClick={onClose}
+          style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}
+        >
+          <img
+            src="/app-logo.png"
+            alt="AptitudePro"
+            style={{ width: '32px', height: '32px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }}
+          />
+          <span>AptitudePro</span>
+        </Link>
 
-      {navGroups.map((group) => (
-        <div key={group.label}>
-          <div className="nav-label">{group.label}</div>
-          {group.items.map((item) => {
-            const Icon = item.icon;
-            const isActive =
-              item.href &&
-              (pathname === item.href ||
-                (item.href !== '/admin/dashboard' && pathname?.startsWith(item.href)));
+        {navGroups.map((group) => (
+          <div key={group.label}>
+            <div className="nav-label">{group.label}</div>
+            {group.items.map((item) => {
+              const Icon = item.icon;
+              const isActive =
+                item.href &&
+                (pathname === item.href ||
+                  (item.href !== '/admin/dashboard' && pathname?.startsWith(item.href)));
 
-            if (item.action) {
+              if (item.action === 'logout') {
+                return (
+                  <button
+                    key={item.label}
+                    type="button"
+                    className="nav-item text-left w-full cursor-pointer logout-nav-btn"
+                    onClick={() => handleItemClick(item)}
+                  >
+                    <Icon size={16} />
+                    <span>{item.label}</span>
+                  </button>
+                );
+              }
+
               return (
-                <button
-                  key={item.label}
-                  type="button"
-                  className="nav-item"
-                  style={{ width: '100%', textAlign: 'left', border: 0 }}
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`nav-item ${isActive ? 'active' : ''}`}
                   onClick={() => handleItemClick(item)}
                 >
-                  <span className="ico" style={{ display: 'inline-flex', alignItems: 'center' }}>
-                    <Icon size={18} />
-                  </span>
+                  <Icon size={16} />
                   <span>{item.label}</span>
-                </button>
+                </Link>
               );
-            }
+            })}
+          </div>
+        ))}
+      </aside>
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`nav-item ${isActive ? 'active' : ''}`}
-                onClick={() => handleItemClick(item)}
-              >
-                <span className="ico" style={{ display: 'inline-flex', alignItems: 'center' }}>
-                  <Icon size={18} />
-                </span>
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
-        </div>
-      ))}
-    </aside>
+      {/* Confirmation Dialog */}
+      <LogoutConfirmModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={handleConfirmLogout}
+        isAssessmentActive={false}
+        role="admin"
+      />
+    </>
   );
 }

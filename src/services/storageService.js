@@ -12,7 +12,12 @@ export const DEFAULT_QUESTIONS = [
   { id: 7, category: 'Quantitative', difficulty: 'Hard', text: 'If x + 5 = 17, what is x?', options: ['10', '11', '12', '13'], correct: 2, active: true },
   { id: 8, category: 'Logical Reasoning', difficulty: 'Medium', text: 'Which shape has three sides?', options: ['Square', 'Triangle', 'Pentagon', 'Circle'], correct: 1, active: true },
   { id: 9, category: 'Verbal', difficulty: 'Easy', text: 'What is the opposite of “expand”?', options: ['Extend', 'Increase', 'Contract', 'Enlarge'], correct: 2, active: true },
-  { id: 10, category: 'Quantitative', difficulty: 'Hard', text: 'A train travels 120 km in 2 hours. What is its average speed?', options: ['40 km/h', '50 km/h', '60 km/h', '80 km/h'], correct: 2, active: true }
+  { id: 10, category: 'Quantitative', difficulty: 'Hard', text: 'A train travels 120 km in 2 hours. What is its average speed?', options: ['40 km/h', '50 km/h', '60 km/h', '80 km/h'], correct: 2, active: true },
+  { id: 11, category: 'Logical Reasoning', difficulty: 'Easy', text: 'Which word does NOT belong with the others?', options: ['Apple', 'Banana', 'Carrot', 'Orange'], correct: 2, active: true },
+  { id: 12, category: 'Quantitative', difficulty: 'Medium', text: 'If a shirt costs $40 after a 20% discount, what was its original price?', options: ['$45', '$48', '$50', '$60'], correct: 2, active: true },
+  { id: 13, category: 'Verbal', difficulty: 'Hard', text: 'Identify the antonym of “Eloquent”.', options: ['Articulate', 'Inarticulate', 'Persuasive', 'Expressive'], correct: 1, active: true },
+  { id: 14, category: 'Quantitative', difficulty: 'Easy', text: 'What is the sum of angles in a triangle?', options: ['90°', '180°', '270°', '360°'], correct: 1, active: true },
+  { id: 15, category: 'Logical Reasoning', difficulty: 'Hard', text: 'Pointing to a photograph, a man said: “I have no brother, and that man’s father is my father’s son.” Whose photo is it?', options: ['His father', 'His son', 'His cousin', 'Himself'], correct: 1, active: true }
 ];
 
 export const DEFAULT_TERMS = `1. Assessment Integrity: You agree to complete this assessment independently without external assistance, unauthorized materials, or automated aids.

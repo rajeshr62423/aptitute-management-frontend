@@ -15,15 +15,16 @@ export default function CandidateLayout({
       className="candidate-shell"
       style={{
         background: '#F8FAFC',
-        minHeight: '100vh',
+        minHeight: '100dvh',
         display: 'flex',
         flexDirection: 'column',
+        overflowX: 'hidden',
       }}
     >
       <header
         className="candidate-top"
         style={{
-          height: '68px',
+          height: '58px',
           background: 'rgba(255, 255, 255, 0.94)',
           backdropFilter: 'blur(12px)',
           borderBottom: '1px solid #E2E8F0',
@@ -34,7 +35,7 @@ export default function CandidateLayout({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '0 max(24px, calc((100vw - 1220px) / 2))',
+          padding: '0 max(20px, calc((100% - 1220px) / 2))',
         }}
       >
         <Link
@@ -47,22 +48,17 @@ export default function CandidateLayout({
             textDecoration: 'none',
           }}
         >
-          <span
+          <img
+            src="/app-logo.png"
+            alt="AptitudePro"
             style={{
               width: '32px',
               height: '32px',
-              borderRadius: '9px',
-              background: 'linear-gradient(135deg, #FF6B16 0%, #EA580C 100%)',
-              color: '#ffffff',
-              display: 'grid',
-              placeItems: 'center',
-              fontWeight: 800,
-              fontSize: '17px',
+              borderRadius: '8px',
+              objectFit: 'cover',
               boxShadow: '0 3px 10px rgba(255, 107, 22, 0.28)',
             }}
-          >
-            A
-          </span>
+          />
           <span
             style={{
               fontSize: '19px',
@@ -80,10 +76,12 @@ export default function CandidateLayout({
         className={`candidate-content ${narrow ? 'narrow' : ''}`}
         style={{
           flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
           width: '100%',
           maxWidth: maxWidth || (fullWidth ? '100%' : narrow ? '650px' : '900px'),
-          margin: fullWidth ? '0 auto' : '36px auto',
-          padding: fullWidth ? 0 : '0 22px',
+          margin: fullWidth ? '0 auto' : '28px auto',
+          padding: fullWidth ? 0 : '0 20px',
         }}
       >
         {children}

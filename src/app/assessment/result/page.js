@@ -4,6 +4,7 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { useSelector, useDispatch } from 'react-redux';
 import CandidateLayout from '@/components/layout/CandidateLayout';
+import CandidateProfileDropdown from '@/components/candidate/CandidateProfileDropdown';
 import ResultSummary from '@/components/assessment/ResultSummary';
 import { set_current_candidate } from '@/redux/candidates/action';
 
@@ -27,7 +28,7 @@ export default function CandidateResultPage() {
   };
 
   const rightContent = (
-    <span className="small">{candidate?.name || 'Candidate'}</span>
+    <CandidateProfileDropdown candidate={candidate} isAssessmentActive={false} />
   );
 
   return (

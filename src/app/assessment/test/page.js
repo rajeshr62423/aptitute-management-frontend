@@ -4,11 +4,15 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation';
 import { useSelector, useDispatch } from 'react-redux';
 import CandidateLayout from '@/components/layout/CandidateLayout';
+import CandidateProfileDropdown from '@/components/candidate/CandidateProfileDropdown';
 import QuestionCard from '@/components/assessment/QuestionCard';
 import QuestionPalette from '@/components/assessment/QuestionPalette';
+import QuestionSkeleton from '@/components/common/loading/QuestionSkeleton';
+import { FullScreenLoader } from '@/components/common/loading/GlobalLoader';
 import AssessmentTimer from '@/components/assessment/AssessmentTimer';
 import Modal from '@/components/common/Modal';
 import Button from '@/components/common/Button';
+import { toast } from '@/utils/toast';
 import { AlertCircle } from 'lucide-react';
 import { useAssessmentTimer } from '@/hooks/useAssessmentTimer';
 import {
@@ -25,9 +29,12 @@ export default function OnlineTestPage() {
   const dispatch = useDispatch();
 
   const { current_candidate: currentCandidate } = useSelector((state) => state.candidates);
-  const { get_settings_data: settings, post_assessment_submit_data, post_assessment_submit_loading } = useSelector(
-    (state) => state.assessment
-  );
+  const {
+    get_settings_data: settings,
+    post_assessment_submit_data,
+    post_assessment_submit_loading,
+    post_assessment_submit_error,
+  } = useSelector((state) => state.assessment);
   const { get_questions_data: questions } = useSelector((state) => state.questions);
 
   const [qIndex, setQIndex] = useState(0);
@@ -35,6 +42,30 @@ export default function OnlineTestPage() {
   const [reviewSet, setReviewSet] = useState(new Set());
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const hasLoadedRecovery = useRef(false);
+  const hasWarnedTimeRef = useRef(false);
+
+  // Monitor network connection status during active assessment
+  useEffect(() => {
+    const handleOffline = () => {
+      toast.error('Network connection interrupted. Answers are preserved locally.', {
+        title: 'Connection Lost',
+        duration: 8000,
+      });
+    };
+    const handleOnline = () => {
+      toast.success('Internet connection restored.', {
+        title: 'Online',
+      });
+    };
+
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline);
+
+    return () => {
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('online', handleOnline);
+    };
+  }, []);
 
   const activeQuestions = useMemo(() => {
     return (questions || [])
@@ -68,6 +99,14 @@ export default function OnlineTestPage() {
   const timer = useAssessmentTimer({
     initialSeconds: initialDurationSeconds,
     onTick: (timeLeft) => {
+      // Gentle warning when 60 seconds remain
+      if (timeLeft === 60 && !hasWarnedTimeRef.current) {
+        hasWarnedTimeRef.current = true;
+        toast.warning('1 minute remaining! Please finalize your answers.', {
+          title: 'Time Running Out',
+        });
+      }
+
       if (currentCandidate) {
         saveTestRecovery({
           answers,
@@ -79,6 +118,9 @@ export default function OnlineTestPage() {
       }
     },
     onTimeout: () => {
+      toast.warning('Time is up! Submitting your assessment automatically...', {
+        title: 'Time Expired',
+      });
       handleFinalSubmit(true);
     },
   });
@@ -86,10 +128,23 @@ export default function OnlineTestPage() {
   // Handle successful submission navigation from Redux
   useEffect(() => {
     if (post_assessment_submit_data) {
+      toast.success('Assessment submitted successfully! Generating evaluation...', {
+        title: 'Exam Completed',
+      });
       dispatch(post_assessment_submit_response_clear());
       router.push('/assessment/result');
     }
   }, [post_assessment_submit_data, dispatch, router]);
+
+  // Handle assessment submission error
+  useEffect(() => {
+    if (post_assessment_submit_error) {
+      toast.error(post_assessment_submit_error, {
+        title: 'Submission Failed',
+      });
+      dispatch(post_assessment_submit_response_clear());
+    }
+  }, [post_assessment_submit_error, dispatch]);
 
   // Handle redirect if no candidate registered
   useEffect(() => {
@@ -185,28 +240,35 @@ export default function OnlineTestPage() {
   const unansweredCount = activeQuestions.length - answeredCount;
 
   const rightContent = (
-    <div className="profile-chip">
-      <span>{currentCandidate?.name || 'Candidate'}</span>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
       <AssessmentTimer formattedTime={timer.formattedTime} />
+      <CandidateProfileDropdown
+        candidate={currentCandidate}
+        isAssessmentActive={true}
+      />
     </div>
   );
 
   return (
     <CandidateLayout rightContent={rightContent} maxWidth="1100px">
       <div className="test-layout">
-        <QuestionCard
-          question={currentQ}
-          currentIndex={qIndex}
-          totalQuestions={activeQuestions.length}
-          selectedAnswer={currentQ ? answers[currentQ.id] : undefined}
-          isReview={currentQ ? reviewSet.has(currentQ.id) : false}
-          onSelectAnswer={handleSelectAnswer}
-          onClearAnswer={handleClearAnswer}
-          onToggleReview={handleToggleReview}
-          onPrevious={() => handleNavigate(-1)}
-          onNext={handleNextOrFinish}
-          isLast={qIndex === activeQuestions.length - 1}
-        />
+        {!currentQ ? (
+          <QuestionSkeleton />
+        ) : (
+          <QuestionCard
+            question={currentQ}
+            currentIndex={qIndex}
+            totalQuestions={activeQuestions.length}
+            selectedAnswer={currentQ ? answers[currentQ.id] : undefined}
+            isReview={currentQ ? reviewSet.has(currentQ.id) : false}
+            onSelectAnswer={handleSelectAnswer}
+            onClearAnswer={handleClearAnswer}
+            onToggleReview={handleToggleReview}
+            onPrevious={() => handleNavigate(-1)}
+            onNext={handleNextOrFinish}
+            isLast={qIndex === activeQuestions.length - 1}
+          />
+        )}
 
         <QuestionPalette
           questions={activeQuestions}
@@ -288,6 +350,13 @@ export default function OnlineTestPage() {
           </div>
         </div>
       </Modal>
+
+      {/* Submitting Assessment Overlay */}
+      <FullScreenLoader
+        isOpen={post_assessment_submit_loading}
+        title="Submitting Your Assessment..."
+        message="Please wait while your answers are being finalized and scored."
+      />
     </CandidateLayout>
   );
 }

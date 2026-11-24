@@ -11,7 +11,7 @@ import {
   post_question_request,
   post_question_response_clear,
 } from '@/redux/questions/action';
-import { showToast } from '@/utils/toast';
+import { toast, showToast } from '@/utils/toast';
 
 export default function NewQuestionPage() {
   const router = useRouter();
@@ -21,7 +21,7 @@ export default function NewQuestionPage() {
 
   useEffect(() => {
     if (post_question_data) {
-      showToast('Question created successfully');
+      toast.success('Question added to question bank.', { title: 'Created' });
       dispatch(post_question_response_clear());
       router.push('/admin/questions');
     }

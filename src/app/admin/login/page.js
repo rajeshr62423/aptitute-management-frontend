@@ -16,7 +16,7 @@ import {
   post_admin_login_request,
   post_admin_login_response_clear,
 } from '@/redux/auth/action';
-import { showToast } from '@/utils/toast';
+import { toast, showToast } from '@/utils/toast';
 
 const loginSchema = yup.object().shape({
   email: yup
@@ -34,6 +34,7 @@ export default function AdminLoginPage() {
 
   const {
     isAuthenticated,
+    post_admin_data,
     post_admin_loading,
     post_admin_error,
   } = useSelector((state) => state.auth);
@@ -58,8 +59,19 @@ export default function AdminLoginPage() {
   }, [isAuthenticated, router]);
 
   useEffect(() => {
+    if (post_admin_data) {
+      toast.success('Signed in successfully as Administrator.', {
+        title: 'Authentication Successful',
+      });
+      dispatch(post_admin_login_response_clear());
+    }
+  }, [post_admin_data, dispatch]);
+
+  useEffect(() => {
     if (post_admin_error) {
-      showToast(post_admin_error);
+      toast.error(post_admin_error, {
+        title: 'Sign In Failed',
+      });
       dispatch(post_admin_login_response_clear());
     }
   }, [post_admin_error, dispatch]);
@@ -74,7 +86,11 @@ export default function AdminLoginPage() {
         <div className="hero-copy">
           <div style={{ display: 'flex', alignItems: 'center', gap: '9px', marginBottom: '8px' }}>
             <div className="brand">
-              <span className="brand-mark">A</span>
+              <img
+                src="/app-logo.png"
+                alt="AptitudePro"
+                style={{ width: '28px', height: '28px', borderRadius: '8px', objectFit: 'cover' }}
+              />
               <span>AptitudePro</span>
             </div>
             <span className="tag">ADMIN</span>
@@ -92,7 +108,11 @@ export default function AdminLoginPage() {
         <div className="login-card">
           <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
             <div className="brand">
-              <span className="brand-mark">A</span>
+              <img
+                src="/app-logo.png"
+                alt="AptitudePro"
+                style={{ width: '28px', height: '28px', borderRadius: '8px', objectFit: 'cover' }}
+              />
               <span>AptitudePro</span>
             </div>
             <span className="tag">ADMIN</span>
@@ -132,7 +152,9 @@ export default function AdminLoginPage() {
                 href="#"
                 onClick={(e) => {
                   e.preventDefault();
-                  showToast('Password reset: contact your administrator');
+                  toast.info('Please contact your system administrator to reset credentials.', {
+                    title: 'Password Reset',
+                  });
                 }}
               >
                 Forgot password?
@@ -142,10 +164,11 @@ export default function AdminLoginPage() {
             <Button
               type="submit"
               variant="primary"
-              disabled={post_admin_loading}
+              loading={post_admin_loading}
+              loadingText="Signing in..."
               style={{ width: '100%', marginTop: '10px' }}
             >
-              {post_admin_loading ? 'Signing in...' : 'Sign In'}
+              Sign In
             </Button>
           </form>
 

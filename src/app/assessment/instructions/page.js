@@ -5,10 +5,12 @@ import { useRouter } from 'next/navigation';
 import { useSelector, useDispatch } from 'react-redux';
 import CandidateLayout from '@/components/layout/CandidateLayout';
 import CandidateProfileDropdown from '@/components/candidate/CandidateProfileDropdown';
+import { FullScreenLoader } from '@/components/common/loading/GlobalLoader';
+import CardSkeleton from '@/components/common/loading/CardSkeleton';
 import { clearTestRecovery, saveTestRecovery } from '@/services/assessmentService';
 import { get_settings_request } from '@/redux/assessment/action';
 import { get_questions_request } from '@/redux/questions/action';
-import { showToast } from '@/utils/toast';
+import { toast, showToast } from '@/utils/toast';
 import {
   HelpCircle,
   Clock,
@@ -35,8 +37,8 @@ export default function AssessmentInstructionsPage() {
   const dispatch = useDispatch();
 
   const { current_candidate } = useSelector((state) => state.candidates);
-  const { get_settings_data: settings } = useSelector((state) => state.assessment);
-  const { get_questions_data: questions } = useSelector((state) => state.questions);
+  const { get_settings_data: settings, get_settings_loading: settingsLoading } = useSelector((state) => state.assessment);
+  const { get_questions_data: questions, get_questions_loading: questionsLoading } = useSelector((state) => state.questions);
 
   const [agreed, setAgreed] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
@@ -69,7 +71,9 @@ export default function AssessmentInstructionsPage() {
     if (isStarting) return;
 
     if (!agreed) {
-      showToast('Please accept the instructions before starting.');
+      toast.warning('Please acknowledge the assessment guidelines before starting.', {
+        title: 'Agreement Required',
+      });
       setHighlightShake(true);
       setTimeout(() => setHighlightShake(false), 900);
       return;
@@ -114,101 +118,107 @@ export default function AssessmentInstructionsPage() {
           {/* Assessment Overview - 6 Modern Stat Cards */}
           <section className="stats-section" aria-label="Assessment Statistics">
             <div className="stats-grid">
-              {/* Card 1: Total Questions */}
-              <div className="stat-card orange-theme">
-                <div className="stat-card-top">
-                  <div className="stat-icon-wrap orange">
-                    <HelpCircle size={20} />
+              {settingsLoading && !settings ? (
+                <CardSkeleton count={6} />
+              ) : (
+                <>
+                  {/* Card 1: Total Questions */}
+                  <div className="stat-card orange-theme">
+                    <div className="stat-card-top">
+                      <div className="stat-icon-wrap orange">
+                        <HelpCircle size={20} />
+                      </div>
+                      <span className="stat-chip">Format</span>
+                    </div>
+                    <div className="stat-value-group">
+                      <span className="stat-value text-orange">{totalQuestions}</span>
+                      <span className="stat-unit">Questions</span>
+                    </div>
+                    <div className="stat-label">Total Questions</div>
+                    <div className="stat-subtext">Single choice MCQs</div>
                   </div>
-                  <span className="stat-chip">Format</span>
-                </div>
-                <div className="stat-value-group">
-                  <span className="stat-value text-orange">{totalQuestions}</span>
-                  <span className="stat-unit">Questions</span>
-                </div>
-                <div className="stat-label">Total Questions</div>
-                <div className="stat-subtext">Single choice MCQs</div>
-              </div>
 
-              {/* Card 2: Duration */}
-              <div className="stat-card blue-theme">
-                <div className="stat-card-top">
-                  <div className="stat-icon-wrap blue">
-                    <Clock size={20} />
+                  {/* Card 2: Duration */}
+                  <div className="stat-card blue-theme">
+                    <div className="stat-card-top">
+                      <div className="stat-icon-wrap blue">
+                        <Clock size={20} />
+                      </div>
+                      <span className="stat-chip">Time</span>
+                    </div>
+                    <div className="stat-value-group">
+                      <span className="stat-value text-blue">{durationMinutes}</span>
+                      <span className="stat-unit">Minutes</span>
+                    </div>
+                    <div className="stat-label">Total Duration</div>
+                    <div className="stat-subtext">Timed countdown</div>
                   </div>
-                  <span className="stat-chip">Time</span>
-                </div>
-                <div className="stat-value-group">
-                  <span className="stat-value text-blue">{durationMinutes}</span>
-                  <span className="stat-unit">Minutes</span>
-                </div>
-                <div className="stat-label">Total Duration</div>
-                <div className="stat-subtext">Timed countdown</div>
-              </div>
 
-              {/* Card 3: Correct Answer */}
-              <div className="stat-card green-theme">
-                <div className="stat-card-top">
-                  <div className="stat-icon-wrap green">
-                    <CheckCircle2 size={20} />
+                  {/* Card 3: Correct Answer */}
+                  <div className="stat-card green-theme">
+                    <div className="stat-card-top">
+                      <div className="stat-icon-wrap green">
+                        <CheckCircle2 size={20} />
+                      </div>
+                      <span className="stat-chip green">Positive</span>
+                    </div>
+                    <div className="stat-value-group">
+                      <span className="stat-value text-green">+{marksPerCorrect}</span>
+                      <span className="stat-unit">Marks</span>
+                    </div>
+                    <div className="stat-label">Correct Answer</div>
+                    <div className="stat-subtext">Per right response</div>
                   </div>
-                  <span className="stat-chip green">Positive</span>
-                </div>
-                <div className="stat-value-group">
-                  <span className="stat-value text-green">+{marksPerCorrect}</span>
-                  <span className="stat-unit">Marks</span>
-                </div>
-                <div className="stat-label">Correct Answer</div>
-                <div className="stat-subtext">Per right response</div>
-              </div>
 
-              {/* Card 4: Wrong Answer */}
-              <div className="stat-card red-theme">
-                <div className="stat-card-top">
-                  <div className="stat-icon-wrap red">
-                    <AlertCircle size={20} />
+                  {/* Card 4: Wrong Answer */}
+                  <div className="stat-card red-theme">
+                    <div className="stat-card-top">
+                      <div className="stat-icon-wrap red">
+                        <AlertCircle size={20} />
+                      </div>
+                      <span className="stat-chip red">Negative</span>
+                    </div>
+                    <div className="stat-value-group">
+                      <span className="stat-value text-red">{marksPerWrong}</span>
+                      <span className="stat-unit">Mark</span>
+                    </div>
+                    <div className="stat-label">Wrong Answer</div>
+                    <div className="stat-subtext">Penalty per error</div>
                   </div>
-                  <span className="stat-chip red">Negative</span>
-                </div>
-                <div className="stat-value-group">
-                  <span className="stat-value text-red">{marksPerWrong}</span>
-                  <span className="stat-unit">Mark</span>
-                </div>
-                <div className="stat-label">Wrong Answer</div>
-                <div className="stat-subtext">Penalty per error</div>
-              </div>
 
-              {/* Card 5: Unattempted */}
-              <div className="stat-card neutral-theme">
-                <div className="stat-card-top">
-                  <div className="stat-icon-wrap neutral">
-                    <MinusCircle size={20} />
+                  {/* Card 5: Unattempted */}
+                  <div className="stat-card neutral-theme">
+                    <div className="stat-card-top">
+                      <div className="stat-icon-wrap neutral">
+                        <MinusCircle size={20} />
+                      </div>
+                      <span className="stat-chip neutral">Neutral</span>
+                    </div>
+                    <div className="stat-value-group">
+                      <span className="stat-value text-neutral">{marksUnattempted}</span>
+                      <span className="stat-unit">Marks</span>
+                    </div>
+                    <div className="stat-label">Unattempted</div>
+                    <div className="stat-subtext">No penalty applied</div>
                   </div>
-                  <span className="stat-chip neutral">Neutral</span>
-                </div>
-                <div className="stat-value-group">
-                  <span className="stat-value text-neutral">{marksUnattempted}</span>
-                  <span className="stat-unit">Marks</span>
-                </div>
-                <div className="stat-label">Unattempted</div>
-                <div className="stat-subtext">No penalty applied</div>
-              </div>
 
-              {/* Card 6: Passing Criteria */}
-              <div className="stat-card purple-theme">
-                <div className="stat-card-top">
-                  <div className="stat-icon-wrap purple">
-                    <Target size={20} />
+                  {/* Card 6: Passing Criteria */}
+                  <div className="stat-card purple-theme">
+                    <div className="stat-card-top">
+                      <div className="stat-icon-wrap purple">
+                        <Target size={20} />
+                      </div>
+                      <span className="stat-chip purple">Benchmark</span>
+                    </div>
+                    <div className="stat-value-group">
+                      <span className="stat-value text-purple">{passingPercent}%</span>
+                      <span className="stat-unit">Score</span>
+                    </div>
+                    <div className="stat-label">Passing Criteria</div>
+                    <div className="stat-subtext">Minimum threshold</div>
                   </div>
-                  <span className="stat-chip purple">Benchmark</span>
-                </div>
-                <div className="stat-value-group">
-                  <span className="stat-value text-purple">{passingPercent}%</span>
-                  <span className="stat-unit">Score</span>
-                </div>
-                <div className="stat-label">Passing Criteria</div>
-                <div className="stat-subtext">Minimum threshold</div>
-              </div>
+                </>
+              )}
             </div>
           </section>
 
@@ -366,7 +376,7 @@ export default function AssessmentInstructionsPage() {
                 {isStarting ? (
                   <>
                     <Loader2 size={18} className="animate-spin" />
-                    <span>Starting Assessment...</span>
+                    <span>Preparing Your Assessment...</span>
                   </>
                 ) : (
                   <>
@@ -382,6 +392,13 @@ export default function AssessmentInstructionsPage() {
             </p>
           </section>
         </div>
+
+        {/* Preparing Assessment Loading Overlay */}
+        <FullScreenLoader
+          isOpen={isStarting}
+          title="Preparing Your Assessment..."
+          message="Configuring your examination session and question palette."
+        />
       </div>
 
       <style jsx>{`

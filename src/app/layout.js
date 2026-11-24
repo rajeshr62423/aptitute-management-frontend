@@ -2,6 +2,8 @@ import { Quicksand } from "next/font/google";
 import "./globals.css";
 import ReduxProvider from "@/redux/ReduxProvider";
 import Toast from "@/components/common/Toast";
+import SplashScreen from "@/components/common/SplashScreen";
+import RouteProgressBar from "@/components/common/RouteProgressBar";
 
 const quicksand = Quicksand({
   subsets: ["latin"],
@@ -16,18 +18,21 @@ export const metadata = {
     "Manage aptitude assessments, candidates and performance in one place.",
   icons: {
     icon: [
+      { url: "/app-logo.png" },
       { url: "/favicon.ico" },
       { url: "/favicon.svg", type: "image/svg+xml" },
     ],
-    apple: "/apple-icon.png",
+    apple: "/app-logo.png",
   },
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={quicksand.variable}>
-      <body className="antialiased">
+    <html lang="en" className={quicksand.variable} suppressHydrationWarning>
+      <body className="antialiased" suppressHydrationWarning>
         <ReduxProvider>
+          <SplashScreen />
+          <RouteProgressBar />
           {children}
           <Toast />
           <div id="modal-root" />

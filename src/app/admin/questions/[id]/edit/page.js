@@ -12,7 +12,7 @@ import {
   put_question_response_clear,
   get_questions_request,
 } from '@/redux/questions/action';
-import { showToast } from '@/utils/toast';
+import { toast, showToast } from '@/utils/toast';
 
 function EditQuestionContent() {
   const router = useRouter();
@@ -30,7 +30,7 @@ function EditQuestionContent() {
 
   useEffect(() => {
     if (put_question_data) {
-      showToast('Question updated successfully');
+      toast.success('Question details updated successfully.', { title: 'Updated' });
       dispatch(put_question_response_clear());
       router.push('/admin/questions');
     }

@@ -80,7 +80,43 @@ export function handleMockRequest(config) {
     const currentQuestions = getStorage('questions', DEFAULT_QUESTIONS);
 
     if (method.toLowerCase() === 'get') {
-      return { status: 200, data: currentQuestions };
+      // Parse params from config.params and query string
+      const queryParams = { ...(config.params || {}) };
+      if ((url || '').includes('?')) {
+        const searchParams = new URLSearchParams((url || '').split('?')[1]);
+        for (const [key, val] of searchParams.entries()) {
+          if (queryParams[key] === undefined) queryParams[key] = val;
+        }
+      }
+
+      let filtered = [...currentQuestions];
+      if (queryParams.search) {
+        const s = String(queryParams.search).toLowerCase();
+        filtered = filtered.filter((q) => (q.text || '').toLowerCase().includes(s));
+      }
+      if (queryParams.category) {
+        filtered = filtered.filter(
+          (q) => (q.category || '').toLowerCase() === String(queryParams.category).toLowerCase()
+        );
+      }
+      if (queryParams.difficulty) {
+        filtered = filtered.filter(
+          (q) => (q.difficulty || '').toLowerCase() === String(queryParams.difficulty).toLowerCase()
+        );
+      }
+      if (queryParams.active !== undefined) {
+        const act = String(queryParams.active) === 'true';
+        filtered = filtered.filter((q) => q.active === act);
+      }
+
+      if (queryParams.page !== undefined || queryParams.limit !== undefined) {
+        const page = Math.max(1, parseInt(queryParams.page || '1', 10));
+        const limit = Math.max(1, parseInt(queryParams.limit || '10', 10));
+        const start = (page - 1) * limit;
+        return { status: 200, data: filtered.slice(start, start + limit) };
+      }
+
+      return { status: 200, data: filtered };
     }
 
     if (method.toLowerCase() === 'post') {

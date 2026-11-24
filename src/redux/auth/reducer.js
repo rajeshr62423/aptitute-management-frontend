@@ -29,7 +29,13 @@ const authReducer = (state = initialValues, action) => {
       return {
         ...state,
         isAuthenticated: isAuth,
-        adminUser: isAuth ? { name: 'Administrator', email: 'admin@aptitudepro.com' } : null,
+        adminUser: isAuth
+          ? {
+              name: 'Administrator',
+              email: 'admin@aptitudepro.com',
+              role: 'Super Administrator',
+            }
+          : null,
       };
     }
 
