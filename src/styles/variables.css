@@ -1,0 +1,33 @@
+:root {
+  /* Design Tokens from Specification */
+  --primary: #F97316;
+  --secondary: #FB923C;
+  --light-orange: #FFF7ED;
+  --pale-orange: #FFEDD5;
+
+  --background: #FFFFFF;
+  --secondary-background: #FAFAF9;
+
+  --text-primary: #292524;
+  --text-secondary: #78716C;
+  --text-muted: #A8A29E;
+
+  --border: #E7E5E4;
+
+  --success: #16A34A;
+  --error: #DC2626;
+
+  /* Aliases directly matching assessment-management.html */
+  --orange: #f97316;
+  --orange2: #fb923c;
+  --light: #fff7ed;
+  --pale: #ffedd5;
+  --ink: #292524;
+  --muted: #78716c;
+  --soft: #a8a29e;
+  --line: #e7e5e4;
+  --bg: #fafaf9;
+  --green: #16a34a;
+  --red: #dc2626;
+  --sidebar: 238px;
+}
